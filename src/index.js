@@ -10,7 +10,7 @@ export default {
 </head>
 <body>
   <h1>i potato you 🥔❤️</h1>
-  <p>For you. 这是新添加的内容~</p> <!-- 这里是新增的内容 -->
+  <p>For you. 今天吃牛肉汤😍~</p> <!-- 今天吃牛肉汤😍 -->
 </body>
 </html>
     `;
