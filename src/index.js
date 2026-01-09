@@ -1,3 +1,5 @@
+const PASSWORD = "ipotatoyou11"; // 修改为你想要的密码
+
 export default {
   async fetch(request, env) {
     const movies = [
@@ -15,14 +17,19 @@ export default {
 
     if (request.method === "POST") {
       const data = await request.json();
+      if(data.password !== PASSWORD) {
+        return new Response(JSON.stringify({error:"密码错误"}), { headers: {"Content-Type":"application/json"} });
+      }
       const key = data.name;
       const cur = await env.MOVIE_TABLE.get(key, { type: "json" }) || { status:0, note:"" };
       if (data.action === "toggle") cur.status = (cur.status + 1) % 3;
+      if (data.action === "note") cur.note = data.note;
       if(DEFAULT_STATE[key] && !cur.timestamp) cur.timestamp = "2026年1月7日";
       await env.MOVIE_TABLE.put(key, JSON.stringify(cur));
       return new Response(JSON.stringify(cur), { headers: { "Content-Type": "application/json" } });
     }
 
+    // 读取 KV 状态
     const states = {};
     for (const m of movies) {
       let v = await env.MOVIE_TABLE.get(m, { type:"json" });
@@ -57,6 +64,20 @@ h1 { display:flex; align-items:center; gap:8px; }
 const movies = ${JSON.stringify(movies)};
 let state = ${JSON.stringify(states)};
 
+async function updateMovie(name, action, note) {
+  const password = prompt("请输入密码修改状态或备注:");
+  if(!password) return;
+  const res = await fetch("", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ name, action, note, password })
+  });
+  const data = await res.json();
+  if(data.error) return alert(data.error);
+  state[name] = data;
+  render();
+}
+
 function render() {
   const box = document.getElementById("list");
   box.innerHTML = "";
@@ -65,22 +86,10 @@ function render() {
     const div = document.createElement("div");
     div.className = "movie " + (s.status===1?"watched":s.status===2?"together":"");
     div.innerHTML = \`
-      <div class="title">🎬 \${s.status===2?"💕 ":s.status===1?"✅ ":""}\${name}</div>
-      <div class="note">\${s.note || ""}</div>
+      <div class="title" onclick="updateMovie('\${name}','toggle')">🎬 \${s.status===2?'💕 ':s.status===1?'✅ ':''}\${name}</div>
+      <div class="note" onclick="updateMovie('\${name}','note', prompt('编辑备注:','\${s.note||''}'))">\${s.note || ''}</div>
       \${s.timestamp ? '<div class="timestamp">'+s.timestamp+'</div>' : ''}
     \`;
-
-    // 点击切换状态
-    div.onclick = async () => {
-      const res = await fetch("", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ action:"toggle", name })
-      });
-      state[name] = await res.json();
-      render();
-    };
-
     box.appendChild(div);
   });
 }
