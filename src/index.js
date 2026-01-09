@@ -1,4 +1,4 @@
-const PASSWORD = "ipotatoyou11"; // 修改为你想要的密码
+const PASSWORD = "ipotatoyou11"; 
 
 export default {
   async fetch(request, env) {
@@ -22,9 +22,18 @@ export default {
       }
       const key = data.name;
       const cur = await env.MOVIE_TABLE.get(key, { type: "json" }) || { status:0, note:"" };
-      if (data.action === "toggle") cur.status = (cur.status + 1) % 3;
-      if (data.action === "note") cur.note = data.note;
+
+      if (data.action === "toggle") {
+        cur.status = (cur.status + 1) % 3;
+      }
+      if (data.action === "note") {
+        cur.note = data.note;
+        // 如果是三部“一起看”电影，备注修改时也更新时间戳
+        if (DEFAULT_STATE[key]) cur.timestamp = "2026年1月7日";
+      }
+
       if(DEFAULT_STATE[key] && !cur.timestamp) cur.timestamp = "2026年1月7日";
+
       await env.MOVIE_TABLE.put(key, JSON.stringify(cur));
       return new Response(JSON.stringify(cur), { headers: { "Content-Type": "application/json" } });
     }
