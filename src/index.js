@@ -7,27 +7,22 @@ export default {
       "沉默的羔羊","红龙","查理的巧克力工厂","杀妻总动员","阿甘正传"
     ];
 
-    // 默认状态初始化
     const DEFAULT_STATE = {
       "南方车站的聚会": {status:2, note:"", timestamp:"2026年1月7日"},
       "厄运遗传": {status:2, note:"", timestamp:"2026年1月7日"},
       "丑陋的继姐": {status:2, note:"", timestamp:"2026年1月7日"}
     };
 
-    // 处理状态或备注修改
     if (request.method === "POST") {
       const data = await request.json();
       const key = data.name;
       const cur = await env.MOVIE_TABLE.get(key, { type: "json" }) || { status:0, note:"" };
       if (data.action === "toggle") cur.status = (cur.status + 1) % 3;
-      if (data.action === "note") cur.note = data.note || "";
-      // 保留时间戳（只在三部电影有）
       if(DEFAULT_STATE[key] && !cur.timestamp) cur.timestamp = "2026年1月7日";
       await env.MOVIE_TABLE.put(key, JSON.stringify(cur));
       return new Response(JSON.stringify(cur), { headers: { "Content-Type": "application/json" } });
     }
 
-    // 读取所有状态
     const states = {};
     for (const m of movies) {
       let v = await env.MOVIE_TABLE.get(m, { type:"json" });
@@ -84,20 +79,6 @@ function render() {
       });
       state[name] = await res.json();
       render();
-    };
-
-    // 双击修改备注
-    div.ondblclick = async () => {
-      const n = prompt("备注：", s.note || "");
-      if (n!==null) {
-        const res = await fetch("", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ action:"note", name, note:n })
-        });
-        state[name] = await res.json();
-        render();
-      }
     };
 
     box.appendChild(div);
