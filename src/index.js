@@ -1,10 +1,17 @@
-const PASSWORD = "ipotatoyou11"; 
+const PASSWORD = " ipotatoyou11"; // 
+
+const DEFAULT_MOVIES = [
+  "南方车站的聚会","仲夏夜惊魂","厄运遗传","博很恐惧","某种物质",
+  "丑陋的继姐","霸王别姬","末代皇帝","大红灯笼高高挂","天国王朝",
+  "疯狂的麦克斯","猛鬼追魂","加勒比海盗","阿凡达","瞬息全宇宙",
+  "沉默的羔羊","红龙","查理的巧克力工厂","杀妻总动员","阿甘正传"
+];
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // ===== API =====
+    // ===== API 保存 =====
     if (url.pathname === "/api" && request.method === "POST") {
       const body = await request.json();
       if (body.password !== PASSWORD) {
@@ -14,15 +21,27 @@ export default {
       return new Response("ok");
     }
 
+    // ===== 读取 KV =====
     let store = { movies: {} };
     const saved = await env.MOVIE_TABLE.get("data");
-    if (saved) store = JSON.parse(saved);
+
+    if (saved) {
+      store = JSON.parse(saved);
+    } else {
+      DEFAULT_MOVIES.forEach(name => {
+        store.movies[name] = { status: 0, note: "" }; // 0未看 1已看 2一起看过
+      });
+      await env.MOVIE_TABLE.put("data", JSON.stringify(store));
+    }
 
     const moviesHtml = Object.entries(store.movies).map(
       ([name, info]) => `
-      <div class="movie">
+      <div class="movie ${info.status === 2 ? "together" : info.status === 1 ? "watched" : ""}">
         <div>
-          <span class="${info.watched ? "watched" : ""}">${info.watched ? "✅ " : ""}${name}</span>
+          <span>
+            ${info.status === 2 ? "💕 " : info.status === 1 ? "✅ " : ""}
+            ${name}
+          </span>
           <button onclick="toggle('${name}')">切换</button>
           <button onclick="removeMovie('${name}')">删除</button>
         </div>
@@ -40,7 +59,8 @@ export default {
 <style>
 body{font-family:sans-serif;background:#fff7f7;padding:20px}
 .movie{border-bottom:1px dashed #ddd;padding:10px 0}
-.watched{text-decoration:line-through;color:#999}
+.watched span{text-decoration:line-through;color:#999}
+.together span{color:#e91e63;font-weight:bold}
 textarea{width:100%;margin-top:6px}
 button{margin-left:4px}
 </style>
@@ -58,7 +78,9 @@ button{margin-left:4px}
 <div id="app" style="display:none">
   <input id="newMovie" placeholder="新增电影名"/>
   <button onclick="addMovie()">添加</button>
+
   <div id="list">${moviesHtml}</div>
+
   <button onclick="save()">保存并同步</button>
 </div>
 
@@ -75,7 +97,7 @@ function unlock(){
 function addMovie(){
   const name = newMovie.value.trim();
   if(!name || data.movies[name]) return;
-  data.movies[name] = { watched:false, note:"" };
+  data.movies[name] = { status:0, note:"" };
   location.reload();
 }
 
@@ -85,7 +107,8 @@ function removeMovie(name){
 }
 
 function toggle(name){
-  data.movies[name].watched = !data.movies[name].watched;
+  data.movies[name].status = (data.movies[name].status + 1) % 3;
+  location.reload();
 }
 
 function note(name, val){
@@ -106,7 +129,7 @@ async function save(){
 `;
 
     return new Response(html, {
-      headers: { "content-type": "text/html;charset=utf-8" }
+      headers: { "content-type": "text/html; charset=utf-8" }
     });
   }
 };
