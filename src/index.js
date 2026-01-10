@@ -1,7 +1,28 @@
-const PASSWORD = "ipotatoyou11"; 
+const PASSWORD = "ipotatoyou11";
+
+// ===== 图片代理映射（解决大陆 GitHub 图片不显示）=====
+const IMAGE_MAP = {
+  "/img/1.jpg":
+    "https://raw.githubusercontent.com/ggkk3979-eng/i-potato-you/main/mmexport1768016148958.jpg",
+  "/img/2.jpg":
+    "https://raw.githubusercontent.com/ggkk3979-eng/i-potato-you/main/mmexport1768016141932.jpg"
+};
 
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+
+    // ===== 图片代理处理 =====
+    if (IMAGE_MAP[url.pathname]) {
+      const imgRes = await fetch(IMAGE_MAP[url.pathname]);
+      return new Response(imgRes.body, {
+        headers: {
+          "Content-Type": imgRes.headers.get("Content-Type"),
+          "Cache-Control": "public, max-age=86400"
+        }
+      });
+    }
+
     const movies = [
       "南方车站的聚会","仲夏夜惊魂","厄运遗传","博很恐惧","某种物质",
       "丑陋的继姐","霸王别姬","末代皇帝","大红灯笼高高挂","天国王朝",
@@ -25,7 +46,9 @@ export default {
       }
 
       const key = data.name;
-      const cur = await env.MOVIE_TABLE.get(key, { type:"json" }) || { status:0, note:"" };
+      const cur =
+        await env.MOVIE_TABLE.get(key, { type:"json" }) ||
+        { status:0, note:"" };
 
       if (data.action === "toggle") {
         cur.status = (cur.status + 1) % 3;
@@ -55,6 +78,7 @@ export default {
     }
 
     return new Response(`<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -123,7 +147,7 @@ button {
 
 .photo-img {
   width: 48%;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .footer-text {
@@ -138,26 +162,23 @@ button {
 
 <body>
 
-<!-- ===== 页面 1：课程表 ===== -->
+<!-- 页面 1 -->
 <div id="page1" class="page active">
   <h1>🎬 课程表</h1>
   <p>i potato you 🥔❤️</p>
-
   <button onclick="goPage(2)">下一页 →</button>
   <div id="list"></div>
 </div>
 
-<!-- ===== 页面 2：计时 + 照片 ===== -->
+<!-- 页面 2 -->
 <div id="page2" class="page">
-  <h1>我们认识了</h1>
+  <h1>我们认识 7 天</h1>
 
   <div class="timer" id="timer"></div>
 
   <div class="photos">
-    <img class="photo-img"
-      src="https://raw.githubusercontent.com/ggkk3979-eng/i-potato-you/main/mmexport1768016148958.jpg">
-    <img class="photo-img"
-      src="https://raw.githubusercontent.com/ggkk3979-eng/i-potato-you/main/mmexport1768016141932.jpg">
+    <img class="photo-img" src="/img/1.jpg">
+    <img class="photo-img" src="/img/2.jpg">
   </div>
 
   <button onclick="goPage(1)">← 返回</button>
@@ -170,7 +191,8 @@ const movies = ${JSON.stringify(movies)};
 let state = ${JSON.stringify(states)};
 
 function goPage(n) {
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".page")
+    .forEach(p => p.classList.remove("active"));
   document.getElementById("page" + n).classList.add("active");
 }
 
@@ -198,8 +220,10 @@ function render() {
     const s = state[name] || { status:0, note:"" };
     const div = document.createElement("div");
 
-    div.className = "movie " +
-      (s.status === 1 ? "watched" : s.status === 2 ? "together" : "");
+    div.className =
+      "movie " +
+      (s.status === 1 ? "watched" :
+       s.status === 2 ? "together" : "");
 
     div.innerHTML = \`
       <div class="title"
@@ -213,7 +237,9 @@ function render() {
         \${s.note || ''}
       </div>
 
-      \${s.timestamp ? '<div class="timestamp">'+s.timestamp+'</div>' : ''}
+      \${s.timestamp
+        ? '<div class="timestamp">'+s.timestamp+'</div>'
+        : ''}
     \`;
 
     box.appendChild(div);
