@@ -12,7 +12,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // ===== 图片代理处理 =====
+    // ===== 图片代理 =====
     if (IMAGE_MAP[url.pathname]) {
       const imgRes = await fetch(IMAGE_MAP[url.pathname]);
       return new Response(imgRes.body, {
@@ -36,7 +36,7 @@ export default {
       "丑陋的继姐": { status:2, note:"", timestamp:"2026年1月7日" }
     };
 
-    // ===== 修改请求（需要密码）=====
+    // ===== 修改（需要密码）=====
     if (request.method === "POST") {
       const data = await request.json();
       if (data.password !== PASSWORD) {
@@ -69,7 +69,7 @@ export default {
       });
     }
 
-    // ===== 页面读取（不需要密码）=====
+    // ===== 页面读取 =====
     const states = {};
     for (const m of movies) {
       let v = await env.MOVIE_TABLE.get(m, { type:"json" });
@@ -78,7 +78,6 @@ export default {
     }
 
     return new Response(`<!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -92,15 +91,9 @@ body {
   padding: 20px;
 }
 
-h1 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 button {
   margin: 12px 0;
-  padding: 6px 14px;
+  padding: 8px 16px;
 }
 
 .movie {
@@ -108,30 +101,16 @@ button {
   padding: 10px 0;
 }
 
-.watched .title {
-  text-decoration: line-through;
-  color: #999;
-}
-
 .together .title {
   color: #e91e63;
   font-weight: bold;
 }
 
-.note {
-  font-size: 14px;
-  color: #666;
-  margin-top: 4px;
-}
+.note { font-size:14px; color:#666; }
+.timestamp { font-size:12px; color:#999; }
 
-.timestamp {
-  font-size: 12px;
-  color: #999;
-  margin-top: 2px;
-}
-
-.page { display: none; }
-.page.active { display: block; }
+.page { display:none; }
+.page.active { display:block; }
 
 .timer {
   font-size: 20px;
@@ -140,14 +119,33 @@ button {
 }
 
 .photos {
-  display: flex;
-  gap: 12px;
-  margin-top: 12px;
+  display:flex;
+  gap:12px;
 }
 
 .photo-img {
-  width: 48%;
-  border-radius: 10px;
+  width:48%;
+  border-radius:10px;
+}
+
+/* ===== 转盘 ===== */
+.wheel-wrap {
+  margin: 30px auto;
+  text-align: center;
+}
+
+.wheel {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 6px solid #e91e63;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  background: #fff;
+  transition: transform 3s cubic-bezier(.17,.67,.35,1);
 }
 
 .footer-text {
@@ -155,7 +153,6 @@ button {
   text-align: center;
   font-size: 14px;
   color: #e91e63;
-  opacity: 0.85;
 }
 </style>
 </head>
@@ -165,20 +162,25 @@ button {
 <!-- 页面 1 -->
 <div id="page1" class="page active">
   <h1>🎬 课程表</h1>
-  <p>i potato you 🥔❤️</p>
   <button onclick="goPage(2)">下一页 →</button>
   <div id="list"></div>
 </div>
 
 <!-- 页面 2 -->
 <div id="page2" class="page">
-  <h1>我们认识了</h1>
+  <h1>我们认识 7 天</h1>
 
   <div class="timer" id="timer"></div>
 
   <div class="photos">
     <img class="photo-img" src="/img/1.jpg">
     <img class="photo-img" src="/img/2.jpg">
+  </div>
+
+  <!-- 🎡 转盘 -->
+  <div class="wheel-wrap">
+    <div id="wheel" class="wheel">🎡</div>
+    <button onclick="spin()">试试今天的运气</button>
   </div>
 
   <button onclick="goPage(1)">← 返回</button>
@@ -191,75 +193,59 @@ const movies = ${JSON.stringify(movies)};
 let state = ${JSON.stringify(states)};
 
 function goPage(n) {
-  document.querySelectorAll(".page")
-    .forEach(p => p.classList.remove("active"));
-  document.getElementById("page" + n).classList.add("active");
-}
-
-async function updateMovie(name, action, note) {
-  const password = prompt("请输入密码修改:");
-  if (!password) return;
-
-  const res = await fetch("", {
-    method: "POST",
-    headers: { "Content-Type":"application/json" },
-    body: JSON.stringify({ name, action, note, password })
-  });
-
-  const data = await res.json();
-  if (data.error) return alert(data.error);
-  state[name] = data;
-  render();
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById("page"+n).classList.add("active");
 }
 
 function render() {
   const box = document.getElementById("list");
   box.innerHTML = "";
-
   movies.forEach(name => {
-    const s = state[name] || { status:0, note:"" };
+    const s = state[name] || {};
     const div = document.createElement("div");
-
-    div.className =
-      "movie " +
-      (s.status === 1 ? "watched" :
-       s.status === 2 ? "together" : "");
-
+    div.className = "movie " + (s.status===2?"together":"");
     div.innerHTML = \`
-      <div class="title"
-        onclick="updateMovie('\${name}','toggle')">
-        🎬 \${s.status===2?'💕 ':s.status===1?'✅ ':''}\${name}
-      </div>
-
-      <div class="note"
-        onclick="updateMovie('\${name}','note',
-          prompt('编辑备注：','\${s.note||''}'))">
-        \${s.note || ''}
-      </div>
-
-      \${s.timestamp
-        ? '<div class="timestamp">'+s.timestamp+'</div>'
-        : ''}
+      <div class="title">🎬 \${name}</div>
+      \${s.timestamp?'<div class="timestamp">'+s.timestamp+'</div>':''}
     \`;
-
     box.appendChild(div);
   });
 }
 
+// ⏱ 计时
 function startTimer() {
   const start = new Date("2026-01-04T00:00:00");
   setInterval(() => {
     const now = new Date();
-    let diff = Math.floor((now - start) / 1000);
+    let d = Math.floor((now-start)/1000);
+    const day=Math.floor(d/86400);d%=86400;
+    const h=Math.floor(d/3600);d%=3600;
+    const m=Math.floor(d/60);const s=d%60;
+    timer.innerText = \`\${day} 天 \${h} 小时 \${m} 分 \${s} 秒\`;
+  },1000);
+}
 
-    const d = Math.floor(diff / 86400); diff %= 86400;
-    const h = Math.floor(diff / 3600); diff %= 3600;
-    const m = Math.floor(diff / 60);
-    const s = diff % 60;
+// 🎡 转盘逻辑（严格按你给的概率）
+const prizes = [
+  { text:"今天吃个好点的", p:30 },
+  { text:"今天对自己好点", p:30 },
+  { text:"今天摆烂", p:1 },
+  { text:"各自亲对方一口", p:30 },
+  { text:"现在喝一大口水憋住", p:5 },
+  { text:"谢谢惠顾", p:4 }
+];
 
-    document.getElementById("timer").innerText =
-      d + " 天 " + h + " 小时 " + m + " 分 " + s + " 秒";
-  }, 1000);
+function spin(){
+  const wheel = document.getElementById("wheel");
+  const r = Math.random()*100;
+  let sum = 0, result;
+  for (const i of prizes) {
+    sum += i.p;
+    if (r <= sum) { result = i.text; break; }
+  }
+  wheel.style.transform =
+    "rotate(" + (360*5 + Math.random()*360) + "deg)";
+  setTimeout(()=>alert(result),3000);
 }
 
 render();
