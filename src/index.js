@@ -168,7 +168,7 @@ button {
 
 <!-- 页面 2 -->
 <div id="page2" class="page">
-  <h1>我们认识 7 天</h1>
+  <h1>我们认识了</h1>
 
   <div class="timer" id="timer"></div>
 
