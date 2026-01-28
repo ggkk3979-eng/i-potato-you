@@ -35,7 +35,7 @@ export default {
 
   h1 {
     font-size: 28px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 
   .timer {
@@ -45,22 +45,22 @@ export default {
   }
 
   .tip {
-    margin-top: 20px;
+    margin-top: 16px;
     font-size: 14px;
     opacity: 0.75;
   }
 
   button {
     margin-top: 28px;
-    padding: 8px 18px;
+    padding: 10px 22px;
     border: none;
-    border-radius: 20px;
+    border-radius: 999px;
     background: #e91e63;
     color: #fff;
-    font-size: 14px;
+    font-size: 15px;
   }
 
-  /* ===== 转盘样式 ===== */
+  /* ===== 转盘 ===== */
   .wheel-wrap {
     text-align: center;
   }
@@ -82,7 +82,6 @@ export default {
   .wheel-text {
     padding: 12px;
     font-size: 14px;
-    color: #e91e63;
   }
 
   .wheel-tip {
@@ -99,7 +98,7 @@ export default {
 <div id="page1" class="page active">
   <div class="box">
     <h1 id="title">我们认识了 0 天</h1>
-    <div class="timer" id="timer">计算中…</div>
+    <div class="timer" id="timer">0 天 0 小时 0 分 0 秒</div>
     <div class="tip">从 2026 年 1 月 20 日 00:00 开始</div>
     <button onclick="goPage(2)">去试试今天的运气 →</button>
   </div>
@@ -119,9 +118,9 @@ export default {
 </div>
 
 <script>
-  /* ===== 页面切换 ===== */
   function goPage(n) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.page')
+      .forEach(p => p.classList.remove('active'));
     document.getElementById('page' + n).classList.add('active');
   }
 
@@ -151,7 +150,7 @@ export default {
   updateTimer();
   setInterval(updateTimer, 1000);
 
-  /* ===== 转盘逻辑（按你给的概率） ===== */
+  /* ===== 转盘（每天只能一次） ===== */
   const pool = [
     ["今天会有好事发生", 10],
     ["今天请自己喝杯奶茶", 5],
@@ -166,6 +165,13 @@ export default {
     ["今天下午会有好事发生", 10]
   ];
 
+  function todayKey() {
+    const d = new Date();
+    return d.getFullYear() + "-" +
+      String(d.getMonth()+1).padStart(2,"0") + "-" +
+      String(d.getDate()).padStart(2,"0");
+  }
+
   function draw() {
     const total = pool.reduce((s, p) => s + p[1], 0);
     let r = Math.random() * total;
@@ -178,8 +184,19 @@ export default {
   let angle = 0;
 
   function spin() {
+    const today = todayKey();
+    const last = localStorage.getItem("lastSpinDate");
+
+    if (last === today) {
+      alert("今天已经试过运气啦～\n明天再来吧 🌙");
+      return;
+    }
+
+    localStorage.setItem("lastSpinDate", today);
+
     const result = draw();
     angle += 720 + Math.random() * 360;
+
     const wheel = document.getElementById("wheel");
     const text = document.getElementById("wheelText");
 
@@ -193,9 +210,7 @@ export default {
 
 </body>
 </html>`, {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8"
-      }
+      headers: { "Content-Type": "text/html; charset=utf-8" }
     });
   }
 };
