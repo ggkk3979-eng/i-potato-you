@@ -91,8 +91,8 @@ button {
 <!-- 页面 1 -->
 <div id="page1" class="page active">
   <div class="box">
-    <h1 id="title">我们认识了</h1>
-    <div class="timer" id="timer"></div>
+    <h1 id="title">我们认识了 0 天</h1>
+    <div class="timer" id="timer">0 天 0 小时 0 分 0 秒</div>
     <div class="tip">从 2026 年 1 月 20 日 00:00 开始</div>
     <button onclick="goPage(2)">去试试今天的运气 →</button>
   </div>
@@ -117,8 +117,8 @@ function goPage(n) {
   document.getElementById('page' + n).classList.add('active');
 }
 
-/* 计时（演示用：过去时间） */
-const start = new Date("2025-01-20T00:00:00");
+/* ===== 计时（正式时间）===== */
+const start = new Date("2026-01-20T00:00:00");
 
 function updateTimer() {
   const now = new Date();
@@ -140,19 +140,19 @@ function updateTimer() {
 updateTimer();
 setInterval(updateTimer, 1000);
 
-/* 转盘 */
+/* ===== 转盘（每天一次）===== */
 const pool = [
   ["今天会有好事发生",10],
   ["今天请自己喝杯奶茶",5],
   ["今天多休息休息",5],
   ["今天适合出去走走",10],
-  ["今天是平淡的一天",20],
+  ["今天是个平淡的一天",20],
   ["谢谢惠顾",5],
-  ["听一首你想听的歌",10],
+  ["现在听一首你想听的歌",10],
   ["今天中午吃顿好的",10],
   ["今天要多想规划",5],
-  ["今晚会有好事发生",10],
-  ["下午会有好事发生",10]
+  ["今天晚上会有好事发生",10],
+  ["今天下午会有好事发生",10]
 ];
 
 function todayKey(){
@@ -172,7 +172,7 @@ function draw(){
 let angle=0;
 function spin(){
   if(localStorage.getItem("spin")===todayKey()){
-    alert("今天已经转过啦～");
+    alert("今天已经试过运气啦～");
     return;
   }
   localStorage.setItem("spin",todayKey());
