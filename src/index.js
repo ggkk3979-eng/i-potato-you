@@ -11,13 +11,21 @@ export default {
   body {
     margin: 0;
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     background: #fff7f7;
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
                  "Microsoft YaHei", sans-serif;
     color: #e91e63;
+  }
+
+  .page {
+    display: none;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page.active {
+    display: flex;
   }
 
   .box {
@@ -41,17 +49,83 @@ export default {
     font-size: 14px;
     opacity: 0.75;
   }
+
+  button {
+    margin-top: 28px;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 20px;
+    background: #e91e63;
+    color: #fff;
+    font-size: 14px;
+  }
+
+  /* ===== 转盘样式 ===== */
+  .wheel-wrap {
+    text-align: center;
+  }
+
+  .wheel {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 6px solid #e91e63;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    background: #fff;
+    transition: transform 2.5s cubic-bezier(.17,.67,.3,1);
+    margin: 0 auto;
+  }
+
+  .wheel-text {
+    padding: 12px;
+    font-size: 14px;
+    color: #e91e63;
+  }
+
+  .wheel-tip {
+    margin-top: 10px;
+    font-size: 13px;
+    opacity: 0.75;
+  }
 </style>
 </head>
 
 <body>
+
+<!-- ===== 页面 1 ===== -->
+<div id="page1" class="page active">
   <div class="box">
     <h1 id="title">我们认识了 0 天</h1>
     <div class="timer" id="timer">计算中…</div>
     <div class="tip">从 2026 年 1 月 20 日 00:00 开始</div>
+    <button onclick="goPage(2)">去试试今天的运气 →</button>
   </div>
+</div>
+
+<!-- ===== 页面 2 ===== -->
+<div id="page2" class="page">
+  <div class="wheel-wrap">
+    <div class="wheel" id="wheel">
+      <div class="wheel-text" id="wheelText">🎡</div>
+    </div>
+    <div class="wheel-tip">测试你今天的运气</div>
+    <button onclick="spin()">试试今天的运气</button>
+    <br>
+    <button onclick="goPage(1)">← 返回</button>
+  </div>
+</div>
 
 <script>
+  /* ===== 页面切换 ===== */
+  function goPage(n) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page' + n).classList.add('active');
+  }
+
+  /* ===== 计时 ===== */
   const start = new Date("2026-01-20T00:00:00");
 
   function updateTimer() {
@@ -66,21 +140,57 @@ export default {
     const minutes = Math.floor(diff / 60);
     const seconds = diff % 60;
 
-    // 更新标题
     document.getElementById("title").innerText =
       "我们认识了 " + days + " 天";
 
-    // 更新时间正文
     document.getElementById("timer").innerText =
-      days + " 天 " +
-      hours + " 小时 " +
-      minutes + " 分 " +
-      seconds + " 秒";
+      days + " 天 " + hours + " 小时 " +
+      minutes + " 分 " + seconds + " 秒";
   }
 
   updateTimer();
   setInterval(updateTimer, 1000);
+
+  /* ===== 转盘逻辑（按你给的概率） ===== */
+  const pool = [
+    ["今天会有好事发生", 10],
+    ["今天请自己喝杯奶茶", 5],
+    ["今天多休息休息调整心态", 5],
+    ["今天适合出去走走", 10],
+    ["今天是个很平淡的一天", 20],
+    ["谢谢惠顾", 5],
+    ["现在听一首你想听的歌", 10],
+    ["今天中午吃顿好的", 10],
+    ["今天要多想该做什么", 5],
+    ["今天晚上会有好事发生", 10],
+    ["今天下午会有好事发生", 10]
+  ];
+
+  function draw() {
+    const total = pool.reduce((s, p) => s + p[1], 0);
+    let r = Math.random() * total;
+    for (const [text, weight] of pool) {
+      if (r < weight) return text;
+      r -= weight;
+    }
+  }
+
+  let angle = 0;
+
+  function spin() {
+    const result = draw();
+    angle += 720 + Math.random() * 360;
+    const wheel = document.getElementById("wheel");
+    const text = document.getElementById("wheelText");
+
+    wheel.style.transform = "rotate(" + angle + "deg)";
+    setTimeout(() => {
+      text.innerText = result;
+      alert("🎯 今天的结果是：\n\n" + result);
+    }, 2500);
+  }
 </script>
+
 </body>
 </html>`, {
       headers: {
