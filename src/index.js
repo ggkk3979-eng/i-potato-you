@@ -18,14 +18,19 @@ export default {
   }
 
   .page {
-    display: none;
-    min-height: 100vh;
+    position: absolute;
+    inset: 0;
+    display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
   }
 
   .page.active {
-    display: flex;
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .box {
@@ -73,7 +78,6 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
     background: #fff;
     transition: transform 2.5s cubic-bezier(.17,.67,.3,1);
     margin: 0 auto;
@@ -111,8 +115,7 @@ export default {
       <div class="wheel-text" id="wheelText">🎡</div>
     </div>
     <div class="wheel-tip">测试你今天的运气</div>
-    <button onclick="spin()">试试今天的运气</button>
-    <br>
+    <button onclick="spin()">试试今天的运气</button><br>
     <button onclick="goPage(1)">← 返回</button>
   </div>
 </div>
@@ -147,10 +150,12 @@ export default {
       minutes + " 分 " + seconds + " 秒";
   }
 
-  updateTimer();
-  setInterval(updateTimer, 1000);
+  document.addEventListener("DOMContentLoaded", () => {
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  });
 
-  /* ===== 转盘（每天只能一次） ===== */
+  /* ===== 转盘（每天一次） ===== */
   const pool = [
     ["今天会有好事发生", 10],
     ["今天请自己喝杯奶茶", 5],
@@ -185,9 +190,7 @@ export default {
 
   function spin() {
     const today = todayKey();
-    const last = localStorage.getItem("lastSpinDate");
-
-    if (last === today) {
+    if (localStorage.getItem("lastSpinDate") === today) {
       alert("今天已经试过运气啦～\n明天再来吧 🌙");
       return;
     }
@@ -203,7 +206,7 @@ export default {
     wheel.style.transform = "rotate(" + angle + "deg)";
     setTimeout(() => {
       text.innerText = result;
-      alert("🎯 今天的结果是：\n\n" + result);
+      alert("🎯 今天的结果是：\\n\\n" + result);
     }, 2500);
   }
 </script>
