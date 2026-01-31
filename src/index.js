@@ -18,14 +18,19 @@ body {
 }
 
 .page {
-  min-height: 100vh;
-  display: none;
+  position: absolute;
+  inset: 0;
+  display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
 }
 
 .page.active {
-  display: flex;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .box {
@@ -35,7 +40,7 @@ body {
 
 h1 {
   font-size: 28px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .timer {
@@ -44,13 +49,13 @@ h1 {
 }
 
 .tip {
-  margin-top: 16px;
+  margin-top: 10px;
   font-size: 14px;
   opacity: .75;
 }
 
 button {
-  margin-top: 28px;
+  margin-top: 26px;
   padding: 10px 22px;
   border: none;
   border-radius: 999px;
@@ -59,7 +64,33 @@ button {
   font-size: 15px;
 }
 
-/* 转盘 */
+/* ===== 图片 ===== */
+.photos {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.photo-item {
+  text-align: center;
+}
+
+.photo-item img {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 26px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
+}
+
+.photo-item div {
+  margin-top: 6px;
+  font-size: 13px;
+  opacity: .85;
+}
+
+/* ===== 转盘 ===== */
 .wheel {
   width: 220px;
   height: 220px;
@@ -88,17 +119,30 @@ button {
 
 <body>
 
-<!-- 页面 1 -->
+<!-- ===== 页面 1 ===== -->
 <div id="page1" class="page active">
   <div class="box">
     <h1 id="title">我们认识了 0 天</h1>
     <div class="timer" id="timer">0 天 0 小时 0 分 0 秒</div>
     <div class="tip">从 2026 年 1 月 20 日 00:00 开始</div>
+
+    <!-- 图片 -->
+    <div class="photos">
+      <div class="photo-item">
+        <img src="https://raw.githubusercontent.com/ggkk3979-eng/i-potato-you/main/Image_1769861714861_705.jpg">
+        <div>孟秘书</div>
+      </div>
+      <div class="photo-item">
+        <img src="https://raw.githubusercontent.com/ggkk3979-eng/i-potato-you/main/Image_1769861702241_781.jpg">
+        <div>小蛋糕</div>
+      </div>
+    </div>
+
     <button onclick="goPage(2)">去试试今天的运气 →</button>
   </div>
 </div>
 
-<!-- 页面 2 -->
+<!-- ===== 页面 2 ===== -->
 <div id="page2" class="page">
   <div class="box">
     <div class="wheel" id="wheel">
@@ -111,37 +155,34 @@ button {
 </div>
 
 <script>
-function goPage(n) {
+function goPage(n){
   document.querySelectorAll('.page')
-    .forEach(p => p.classList.remove('active'));
-  document.getElementById('page' + n).classList.add('active');
+    .forEach(p=>p.classList.remove('active'));
+  document.getElementById('page'+n).classList.add('active');
 }
 
-/* ===== 计时（正式时间）===== */
-const start = new Date("2026-01-20T00:00:00");
+/* ===== 计时 ===== */
+const start = new Date(2026, 0, 20, 0, 0, 0);
 
-function updateTimer() {
-  const now = new Date();
-  let diff = Math.floor((now - start) / 1000);
-  if (diff < 0) diff = 0;
+function updateTimer(){
+  const now=new Date();
+  let diff=Math.floor((now-start)/1000);
+  if(diff<0) diff=0;
 
-  const d = Math.floor(diff / 86400); diff %= 86400;
-  const h = Math.floor(diff / 3600); diff %= 3600;
-  const m = Math.floor(diff / 60);
-  const s = diff % 60;
+  const d=Math.floor(diff/86400); diff%=86400;
+  const h=Math.floor(diff/3600); diff%=3600;
+  const m=Math.floor(diff/60);
+  const s=diff%60;
 
-  document.getElementById("title").innerText =
-    "我们认识了 " + d + " 天";
-
-  document.getElementById("timer").innerText =
-    d + " 天 " + h + " 小时 " + m + " 分 " + s + " 秒";
+  title.innerText="我们认识了 "+d+" 天";
+  timer.innerText=d+" 天 "+h+" 小时 "+m+" 分 "+s+" 秒";
 }
 
 updateTimer();
-setInterval(updateTimer, 1000);
+setInterval(updateTimer,1000);
 
-/* ===== 转盘（每天一次）===== */
-const pool = [
+/* ===== 转盘 ===== */
+const pool=[
   ["今天会有好事发生",10],
   ["今天请自己喝杯奶茶",5],
   ["今天多休息休息",5],
@@ -156,8 +197,7 @@ const pool = [
 ];
 
 function todayKey(){
-  const d=new Date();
-  return d.toISOString().slice(0,10);
+  return new Date().toISOString().slice(0,10);
 }
 
 function draw(){
