@@ -64,16 +64,12 @@ button {
   font-size: 15px;
 }
 
-/* ===== 图片 ===== */
+/* 图片 */
 .photos {
   display: flex;
   gap: 18px;
   justify-content: center;
   margin-top: 22px;
-}
-
-.photo-item {
-  text-align: center;
 }
 
 .photo-item img {
@@ -90,7 +86,7 @@ button {
   opacity: .85;
 }
 
-/* ===== 转盘 ===== */
+/* 转盘 */
 .wheel {
   width: 220px;
   height: 220px;
@@ -103,37 +99,24 @@ button {
   transition: transform 2.5s cubic-bezier(.17,.67,.3,1);
   margin: 0 auto;
 }
-
-.wheel-text {
-  font-size: 14px;
-  padding: 12px;
-}
-
-.wheel-tip {
-  margin-top: 10px;
-  font-size: 13px;
-  opacity: .75;
-}
 </style>
 </head>
 
 <body>
 
-<!-- ===== 页面 1 ===== -->
 <div id="page1" class="page active">
   <div class="box">
     <h1 id="title">我们认识了 0 天</h1>
     <div class="timer" id="timer">0 天 0 小时 0 分 0 秒</div>
     <div class="tip">从 2026 年 1 月 20 日 00:00 开始</div>
 
-    <!-- 图片 -->
     <div class="photos">
       <div class="photo-item">
-        <img src="https://raw.githubusercontent.com/ggkk3979-eng/i-potato-you/main/Image_1769861714861_705.jpg">
+        <img src="https://cdn.jsdelivr.net/gh/ggkk3979-eng/i-potato-you@main/Image_1769861714861_705.jpg">
         <div>孟秘书</div>
       </div>
       <div class="photo-item">
-        <img src="https://raw.githubusercontent.com/ggkk3979-eng/i-potato-you/main/Image_1769861702241_781.jpg">
+        <img src="https://cdn.jsdelivr.net/gh/ggkk3979-eng/i-potato-you@main/Image_1769861702241_781.jpg">
         <div>小蛋糕</div>
       </div>
     </div>
@@ -142,13 +125,10 @@ button {
   </div>
 </div>
 
-<!-- ===== 页面 2 ===== -->
 <div id="page2" class="page">
   <div class="box">
-    <div class="wheel" id="wheel">
-      <div class="wheel-text" id="wheelText">🎡</div>
-    </div>
-    <div class="wheel-tip">测试你今天的运气</div>
+    <div class="wheel" id="wheel">🎡</div>
+    <div class="tip">测试你今天的运气</div>
     <button onclick="spin()">试试今天的运气</button><br>
     <button onclick="goPage(1)">← 返回</button>
   </div>
@@ -156,71 +136,28 @@ button {
 
 <script>
 function goPage(n){
-  document.querySelectorAll('.page')
-    .forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page'+n).classList.add('active');
 }
 
-/* ===== 计时 ===== */
-const start = new Date(2026, 0, 20, 0, 0, 0);
-
+const start=new Date(2026,0,20,0,0,0);
 function updateTimer(){
-  const now=new Date();
-  let diff=Math.floor((now-start)/1000);
+  let diff=Math.floor((new Date()-start)/1000);
   if(diff<0) diff=0;
-
-  const d=Math.floor(diff/86400); diff%=86400;
-  const h=Math.floor(diff/3600); diff%=3600;
+  const d=Math.floor(diff/86400);
+  diff%=86400;
+  const h=Math.floor(diff/3600);
+  diff%=3600;
   const m=Math.floor(diff/60);
   const s=diff%60;
-
   title.innerText="我们认识了 "+d+" 天";
-  timer.innerText=d+" 天 "+h+" 小时 "+m+" 分 "+s+" 秒";
+  timer.innerText=\`\${d} 天 \${h} 小时 \${m} 分 \${s} 秒\`;
 }
-
 updateTimer();
 setInterval(updateTimer,1000);
 
-/* ===== 转盘 ===== */
-const pool=[
-  ["今天请自己吃个小蛋糕",10],
-  ["今天请自己喝杯奶茶",10],
-  ["今天多休息休息",5],
-  ["今天适合出去走走",10],
-  ["现在拍一张照片给对方",10],
-  ["今天有绝好的事情发生",10],
-  ["现在听一首你想听的歌",10],
-  ["今天中午吃顿好的",10],
-  ["今天会过的跟神奇",5],
-  ["今天晚上会有好事发生",10],
-  ["今天下午会有好事发生",10]
-];
-
-function todayKey(){
-  return new Date().toISOString().slice(0,10);
-}
-
-function draw(){
-  const sum=pool.reduce((a,b)=>a+b[1],0);
-  let r=Math.random()*sum;
-  for(const [t,w] of pool){
-    if(r<w) return t;
-    r-=w;
-  }
-}
-
-let angle=0;
 function spin(){
-  if(localStorage.getItem("spin")===todayKey()){
-    alert("今天已经试过运气啦～");
-    return;
-  }
-  localStorage.setItem("spin",todayKey());
-
-  const res=draw();
-  angle+=720+Math.random()*360;
-  wheel.style.transform="rotate("+angle+"deg)";
-  setTimeout(()=>alert("🎯 "+res),2500);
+  alert("今天也要对自己好一点 💗");
 }
 </script>
 
